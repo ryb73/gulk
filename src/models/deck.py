@@ -14,12 +14,9 @@ class Deck:
             for suit in Suit
             for rank in Rank
         ]
-
-    def shuffle(self):
-        """Shuffles the deck in place."""
         random.shuffle(self.cards)
 
-    def deal(self, num_cards: int = 1) -> List[Card]:
+    def take_cards(self, num_cards: int = 1) -> List[Card]:
         """Deals the specified number of cards from the top of the deck."""
         if num_cards > len(self.cards):
             raise ValueError("Not enough cards left in the deck")

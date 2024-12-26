@@ -7,11 +7,11 @@ class Player:
         self.hand: List[Card] = []
         self.tricks_won: List[List[Card]] = []
 
-    def receive_cards(self, cards: List[Card]):
+    def add_cards(self, cards: List[Card]):
         """Add cards to the player's hand."""
         self.hand.extend(cards)
 
-    def play_card(self, card: Card) -> Card:
+    def remove_card(self, card: Card) -> Card:
         """Play a card from the player's hand."""
         if card not in self.hand:
             raise ValueError("Card not in hand")

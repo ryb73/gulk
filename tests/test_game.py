@@ -11,9 +11,18 @@ def test_game_creation():
 
 def test_game_setup():
     game = TrickTakingGame(["Player 1", "Player 2"])
-    game.setup_round()
-    assert len(game.players[0].hand) == len(game.players[1].hand)
+    game.setup_round(5)  # Deal 5 cards to each player
+    assert len(game.players[0].hand) == 5
+    assert len(game.players[1].hand) == 5
     assert len(game.current_trick) == 0
+
+
+def test_invalid_cards_per_player():
+    game = TrickTakingGame(["Player 1", "Player 2"])
+    with pytest.raises(ValueError):
+        game.setup_round(0)  # Too few cards
+    with pytest.raises(ValueError):
+        game.setup_round(27)  # Too many cards (deck has 52 cards)
 
 
 def test_must_follow_suit():

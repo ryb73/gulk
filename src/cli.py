@@ -49,7 +49,19 @@ def main():
         player_names.append(name)
 
     game = TrickTakingGame(player_names)
-    game.setup_round()
+
+    # Ask for number of cards
+    while True:
+        try:
+            max_cards = len(game.deck.cards) // len(game.players)
+            cards_per_player = int(input(f"Enter number of cards per player (1-{max_cards}): "))
+            if 1 <= cards_per_player <= max_cards:
+                break
+            print(f"Please enter a number between 1 and {max_cards}.")
+        except ValueError:
+            print("Please enter a valid number.")
+
+    game.setup_round(cards_per_player)
 
     # Game loop
     current_player_idx = 0

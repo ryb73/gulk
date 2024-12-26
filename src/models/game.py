@@ -21,14 +21,20 @@ class TrickTakingGame:
         self.current_trick: List[PlayedCard] = []
         self.trump_suit: Optional[Suit] = None
 
-    def setup_round(self):
+    def setup_round(self, cards_per_player: int):
         """Setup a new round of the game."""
         self.deck.build()
         self.current_trick = []
         self.current_trick_players = []
 
-        # Deal cards evenly to all players
-        cards_per_player = len(self.deck.cards) // len(self.players)
+        # Validate cards per player
+        max_cards = len(self.deck.cards) // len(self.players)
+        if cards_per_player > max_cards:
+            raise ValueError(f"Cannot deal {cards_per_player} cards per player. Maximum is {max_cards}")
+        if cards_per_player < 1:
+            raise ValueError("Must deal at least 1 card per player")
+
+        # Deal specified number of cards to all players
         for player in self.players:
             player.add_cards(self.deck.take_cards(cards_per_player))
 

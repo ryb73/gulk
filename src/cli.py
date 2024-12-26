@@ -75,6 +75,10 @@ def main():
             print("Invalid play. You must follow suit if possible.")
 
         if len(game.current_trick) == len(game.players):
+            print("\nCompleted trick:")
+            for card in game.current_trick:
+                print(card, end="  ")
+            print()
             winner = game.evaluate_trick()
             print(f"\n{winner.name} wins the trick!")
             current_player_idx = game.players.index(winner)

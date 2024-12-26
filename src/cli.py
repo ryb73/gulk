@@ -1,22 +1,31 @@
+from .models.player import Player
 from .models.game import TrickTakingGame
 from .models.card import Card
 
 
-def print_hand(hand):
-    """Print cards with their index for selection."""
+def print_hand(hand, game: TrickTakingGame, player: Player):
+    """Print cards vertically, numbering only valid plays."""
     print("Your hand:")
+    playable_indices = {}
+    index = 0
+
     for i, card in enumerate(hand):
-        print(f"[{i}] {card}", end="  ")
-    print()
+        prefix = "  "
+        if game.can_play_card(player, card, check_only=True):
+            prefix = f"[{index}]"
+            playable_indices[index] = i
+            index += 1
+        print(f"{prefix} {card}")
+    return playable_indices
 
 
-def get_card_choice(hand):
+def get_card_choice(hand, playable_indices):
     """Get valid card selection from user."""
     while True:
         try:
             choice = int(input("Choose a card (number): "))
-            if 0 <= choice < len(hand):
-                return hand[choice]
+            if choice in playable_indices:
+                return hand[playable_indices[choice]]
             print("Invalid choice. Try again.")
         except ValueError:
             print("Please enter a number.")
@@ -55,10 +64,12 @@ def main():
                 print(card, end="  ")
             print()
 
-        print_hand(current_player.hand)
-
         while True:
-            card = get_card_choice(current_player.hand)
+            playable_indices = print_hand(current_player.hand, game, current_player)
+            if not playable_indices:
+                print("No playable cards!")
+                break
+            card = get_card_choice(current_player.hand, playable_indices)
             if game.can_play_card(current_player, card):
                 break
             print("Invalid play. You must follow suit if possible.")

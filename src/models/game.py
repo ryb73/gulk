@@ -24,10 +24,13 @@ class TrickTakingGame:
         for player in self.players:
             player.add_cards(self.deck.take_cards(cards_per_player))
 
-    def can_play_card(self, player: Player, card: Card) -> bool:
+    def can_play_card(
+        self, player: Player, card: Card, check_only: bool = False
+    ) -> bool:
         """
         Handle a player playing a card.
         Returns True if the play is valid, False otherwise.
+        If check_only is True, don't actually play the card.
         """
         if len(self.current_trick) == len(self.players):
             return False  # Trick is already full
@@ -38,8 +41,9 @@ class TrickTakingGame:
             if card.suit != led_suit and any(c.suit == led_suit for c in player.hand):
                 return False  # Must follow suit if possible
 
-        player.remove_card(card)
-        self.current_trick.append(card)
+        if not check_only:
+            player.remove_card(card)
+            self.current_trick.append(card)
         return True
 
     def evaluate_trick(self) -> Optional[Player]:

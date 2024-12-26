@@ -60,9 +60,8 @@ def main():
 
         if game.current_trick:
             print("\nCurrent trick:")
-            for card in game.current_trick:
-                print(card, end="  ")
-            print()
+            for played_card in game.current_trick:
+                print(f"{played_card.player.name}: {played_card.card}")
 
         while True:
             playable_indices = print_hand(current_player.hand, game, current_player)
@@ -76,8 +75,8 @@ def main():
 
         if len(game.current_trick) == len(game.players):
             print("\nCompleted trick:")
-            for card in game.current_trick:
-                print(card, end="  ")
+            for played_card in game.current_trick:
+                print(f"{played_card.player.name}: {played_card.card}")
             print()
             winner = game.evaluate_trick()
             print(f"\n{winner.name} wins the trick!")

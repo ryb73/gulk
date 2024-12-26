@@ -1,5 +1,5 @@
 import pytest
-from src.models.game import TrickTakingGame
+from src.models.game import TrickTakingGame, PlayedCard
 from src.models.card import Card, Suit, Rank
 
 
@@ -26,7 +26,8 @@ def test_must_follow_suit():
     player.add_cards([hearts, spades])
 
     # Lead a heart
-    game.current_trick = [Card(Suit.HEARTS, Rank.TWO)]
+    leading_card = Card(Suit.HEARTS, Rank.TWO)
+    game.current_trick = [PlayedCard(leading_card, game.players[1])]
 
     # Shouldn't be able to play spade
     assert not game.can_play_card(player, spades)

@@ -11,7 +11,7 @@ def print_hand(hand, game: TrickTakingGame, player: Player):
 
     for i, card in enumerate(hand):
         prefix = "  "
-        if game.can_play_card(player, card, check_only=True):
+        if game.can_play_card(player, card):
             prefix = f"[{index}]"
             playable_indices[index] = i
             index += 1
@@ -70,7 +70,7 @@ def main():
                 print("No playable cards!")
                 break
             card = get_card_choice(current_player.hand, playable_indices)
-            if game.can_play_card(current_player, card):
+            if game.play_card(current_player, card):
                 break
             print("Invalid play. You must follow suit if possible.")
 

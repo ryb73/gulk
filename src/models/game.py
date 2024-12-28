@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union
 from .player import Player
 from .deck import Deck
 from .card import Card, Suit
@@ -12,25 +12,28 @@ class PlayedCard:
 
 
 class TrickTakingGame:
-    def __init__(self, player_names: List[str]):
+    def __init__(self, player_names: List[str], deck: Optional[Deck] = None):
         if len(player_names) < 2:
             raise ValueError("Need at least 2 players")
 
         self.players = [Player(name) for name in player_names]
-        self.deck = Deck()
+        self.deck = deck if deck is not None else Deck()
         self.current_trick: List[PlayedCard] = []
         self.trump_suit: Optional[Suit] = None
 
-    def setup_round(self, cards_per_player: int):
+    def setup_round(self, cards_per_player: int, trump: bool = True):
         """Setup a new round of the game."""
         self.deck.build()
         self.current_trick = []
-        self.current_trick_players = []
+        self.trump_suit = None
 
         # Validate cards per player
-        max_cards = len(self.deck.cards) // len(self.players)
-        if cards_per_player > max_cards:
-            raise ValueError(f"Cannot deal {cards_per_player} cards per player. Maximum is {max_cards}")
+        total_needed = cards_per_player * len(self.players)
+        if trump:
+            total_needed += 1  # Account for trump card
+
+        if total_needed > len(self.deck.cards):
+            raise ValueError(f"Not enough cards for {cards_per_player} per player")
         if cards_per_player < 1:
             raise ValueError("Must deal at least 1 card per player")
 
@@ -38,41 +41,54 @@ class TrickTakingGame:
         for player in self.players:
             player.add_cards(self.deck.take_cards(cards_per_player))
 
-    def can_play_card(self, player: Player, card: Card) -> bool:
+        # Draw trump card if enabled
+        if trump:
+            trump_card = self.deck.take_cards(1)[0]
+            self.trump_suit = trump_card.suit
+
+    def can_play_card(self, player: Player, card: Card) -> Union[str, bool]:
         """
         Check if playing a card would be valid.
-        Returns True if the play would be valid, False otherwise.
+        Returns True if the play is valid, or a string explaining why it's invalid.
         """
         if len(self.current_trick) == len(self.players):
-            return False  # Trick is already full
+            return "Trick is already complete"
 
-        # Add basic trick-following rules here
-        if len(self.current_trick) > 0:
-            led_suit = self.current_trick[0].card.suit
-            if card.suit != led_suit and any(c.suit == led_suit for c in player.hand):
-                return False  # Must follow suit if possible
+        # First card of trick can be anything
+        if len(self.current_trick) == 0:
+            return True
+
+        # Must follow suit if possible
+        led_suit = self.current_trick[0].card.suit
+        has_led_suit = any(c.suit == led_suit for c in player.hand)
+
+        if has_led_suit and card.suit != led_suit:
+            matching_cards = [c for c in player.hand if c.suit == led_suit]
+            return f"Must follow suit with one of: {', '.join(str(c) for c in matching_cards)}"
 
         return True
 
-    def play_card(self, player: Player, card: Card) -> bool:
+    def play_card(self, player: Player, card: Card) -> None:
         """
         Handle a player playing a card.
-        Returns True if the play was successful, False otherwise.
+        Raises ValueError with explanation if the play is invalid.
         """
-        if not self.can_play_card(player, card):
-            return False
+        result = self.can_play_card(player, card)
+        if result is not True:
+            raise ValueError(result)
 
         player.remove_card(card)
         self.current_trick.append(PlayedCard(card, player))
-        return True
 
-    def evaluate_trick(self) -> Optional[Player]:
+    def evaluate_trick(self) -> Player:
         """
         Evaluate the current trick and return the winning player.
-        Returns None if the trick is not complete.
+        Raises ValueError if the trick is not complete.
         """
         if len(self.current_trick) != len(self.players):
-            return None
+            raise ValueError(
+                f"Cannot evaluate incomplete trick. Expected {len(self.players)} cards, got {len(self.current_trick)}"
+            )
 
         led_suit = self.current_trick[0].card.suit
         winning_played_card = self.current_trick[0]

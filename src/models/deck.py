@@ -4,6 +4,8 @@ from .card import Card, Suit, Rank
 
 
 class Deck:
+    STANDARD_DECK_SIZE = 52
+
     def __init__(self, cards: Sequence[Card]):
         """Initialize a deck with a specific sequence of cards."""
         self._cards = tuple(cards)

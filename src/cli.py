@@ -1,6 +1,7 @@
 from .models.player import Player
 from .models.game import TrickTakingGame
 from .models.card import Card
+from .models.deck import Deck
 
 
 def print_hand(hand, game: TrickTakingGame, player: Player):
@@ -61,7 +62,7 @@ def main():
     # Ask for number of cards
     while True:
         try:
-            max_cards = (len(game.deck.cards) - 1) // len(
+            max_cards = (Deck.STANDARD_DECK_SIZE - 1) // len(
                 game.players
             )  # Account for trump card
             cards_per_player = int(

@@ -97,23 +97,21 @@ def test_trump_enabled():
 
 def create_test_deck(*cards: Card) -> Deck:
     """Create a deck with specific cards in a specific order."""
-    deck = Deck()
-    deck.cards = list(cards)
-    return deck
+    return Deck(cards)
 
 
 def test_trump_card_wins():
     # Create specific cards for the test
-    spade_ace = Card(Suit.SPADES, Rank.ACE)
-    heart_two = Card(Suit.HEARTS, Rank.TWO)
     heart_three = Card(Suit.HEARTS, Rank.THREE)  # Will be trump card
+    heart_two = Card(Suit.HEARTS, Rank.TWO)
+    spade_ace = Card(Suit.SPADES, Rank.ACE)
 
     # Create deck with exactly the cards we need
-    deck = create_test_deck(spade_ace, heart_two, heart_three)
+    deck = create_test_deck(heart_three, heart_two, spade_ace)
 
     # Create game with test deck
-    game = TrickTakingGame(["Player 1", "Player 2"], deck=deck)
-    game.setup_round(1, trump=True)  # Deal 1 card to each player
+    game = TrickTakingGame(["Player 1", "Player 2"])
+    game.setup_round(1, trump=True, deck=deck)  # Pass deck during setup
 
     player1, player2 = game.players
 

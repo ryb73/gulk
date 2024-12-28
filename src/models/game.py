@@ -12,20 +12,21 @@ class PlayedCard:
 
 
 class TrickTakingGame:
-    def __init__(self, player_names: List[str], deck: Optional[Deck] = None):
+    def __init__(self, player_names: List[str]):
         if len(player_names) < 2:
             raise ValueError("Need at least 2 players")
 
         self.players = [Player(name) for name in player_names]
-        self.deck = deck if deck is not None else Deck()
         self.current_trick: List[PlayedCard] = []
         self.trump_suit: Optional[Suit] = None
 
-    def setup_round(self, cards_per_player: int, trump: bool = True):
+    def setup_round(self, cards_per_player: int, trump: bool = True, deck: Optional[Deck] = None):
         """Setup a new round of the game."""
-        self.deck.build()
         self.current_trick = []
         self.trump_suit = None
+
+        # Initialize deck
+        self.deck = deck if deck is not None else Deck.standard_deck()
 
         # Validate cards per player
         total_needed = cards_per_player * len(self.players)

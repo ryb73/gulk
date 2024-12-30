@@ -12,7 +12,7 @@ def print_hand(hand, game: TrickTakingGame, player: Player):
 
     for i, card in enumerate(hand):
         prefix = "  "
-        if game.can_play_card(player, card):
+        if game.check_play_validity(player, card) is None:
             prefix = f"[{index}]"
             playable_indices[index] = i
             index += 1
@@ -81,7 +81,7 @@ def main():
 
     # Game loop
     current_player_idx = 0
-    while len(game.players[0].hand) > 0:
+    while not game.is_game_over():
         print("\n" + "=" * 40)
         current_player = game.players[current_player_idx]
         print(f"\nCurrent player: {current_player.name}")
@@ -100,11 +100,11 @@ def main():
                 print("No playable cards!")
                 break
             card = get_card_choice(current_player.hand, playable_indices)
-            result = game.can_play_card(current_player, card)
-            if result is True:
+            error = game.check_play_validity(current_player, card)
+            if error is None:
                 game.play_card(current_player, card)
                 break
-            print(f"Invalid play: {result}")
+            print(f"Invalid play: {error}")
 
         if len(game.current_trick) == len(game.players):
             print("\nCompleted trick:")

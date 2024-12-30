@@ -40,12 +40,12 @@ def test_must_follow_suit():
     game.current_trick = [PlayedCard(leading_card, game.players[1])]
 
     # Shouldn't be able to play spade
-    result = game.can_play_card(player, spades)
+    result = game.check_play_validity(player, spades)
     assert isinstance(result, str)
     assert "Must follow suit" in result
 
     # Should be able to play heart
-    assert game.can_play_card(player, hearts) is True
+    assert game.check_play_validity(player, hearts) is None
 
 
 def test_complete_trick_error():

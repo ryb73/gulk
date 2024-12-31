@@ -1,10 +1,10 @@
 from .models.player import Player
-from .models.game import TrickTakingGame
+from .models.game_round import GameRound
 from .models.card import Card
 from .models.deck import Deck
 
 
-def print_hand(hand, game: TrickTakingGame, player: Player):
+def print_hand(hand, round: GameRound, player: Player):
     """Print cards vertically, numbering only valid plays."""
     print("Your hand:")
     playable_indices = {}
@@ -12,7 +12,7 @@ def print_hand(hand, game: TrickTakingGame, player: Player):
 
     for i, card in enumerate(hand):
         prefix = "  "
-        if game.check_play_validity(player, card) is None:
+        if round.check_play_validity(player, card) is None:
             prefix = f"[{index}]"
             playable_indices[index] = i
             index += 1
@@ -34,7 +34,7 @@ def get_card_choice(hand, playable_indices):
 
 def main():
     # Game setup
-    print("Welcome to the Trick-Taking Game!")
+    print("Playing a test round of Gulk.")
     while True:
         try:
             num_players = int(input("Enter number of players (2-4): "))
@@ -49,7 +49,7 @@ def main():
         name = input(f"Enter name for Player {i+1}: ")
         player_names.append(name)
 
-    game = TrickTakingGame(player_names)
+    round = GameRound(player_names)
 
     # Ask about trump suits
     while True:
@@ -63,7 +63,7 @@ def main():
     while True:
         try:
             max_cards = (Deck.STANDARD_DECK_SIZE - 1) // len(
-                game.players
+                round.players
             )  # Account for trump card
             cards_per_player = int(
                 input(f"Enter number of cards per player (1-{max_cards}): ")
@@ -74,55 +74,55 @@ def main():
         except ValueError:
             print("Please enter a valid number.")
 
-    game.setup_round(cards_per_player, trump=use_trump)
+    round.setup_round(cards_per_player, trump=use_trump)
 
-    if game.trump_suit:
-        print(f"\nTrump suit for this round: {Card._suit_symbols[game.trump_suit]}")
+    if round.trump_suit:
+        print(f"\nTrump suit for this round: {Card._suit_symbols[round.trump_suit]}")
 
     # Game loop
     current_player_idx = 0
-    while not game.is_game_over():
+    while not round.is_over():
         print("\n" + "=" * 40)
-        current_player = game.players[current_player_idx]
+        current_player = round.players[current_player_idx]
         print(f"\nCurrent player: {current_player.name}")
 
-        if game.trump_suit:
-            print(f"Trump suit: {Card._suit_symbols[game.trump_suit]}")
+        if round.trump_suit:
+            print(f"Trump suit: {Card._suit_symbols[round.trump_suit]}")
 
-        if game.current_trick:
+        if round.current_trick:
             print("\nCurrent trick:")
-            for played_card in game.current_trick:
+            for played_card in round.current_trick:
                 print(f"{played_card.player.name}: {played_card.card}")
 
         while True:
-            playable_indices = print_hand(current_player.hand, game, current_player)
+            playable_indices = print_hand(current_player.hand, round, current_player)
             if not playable_indices:
                 print("No playable cards!")
                 break
             card = get_card_choice(current_player.hand, playable_indices)
-            error = game.check_play_validity(current_player, card)
+            error = round.check_play_validity(current_player, card)
             if error is None:
-                game.play_card(current_player, card)
+                round.play_card(current_player, card)
                 break
             print(f"Invalid play: {error}")
 
-        if len(game.current_trick) == len(game.players):
+        if len(round.current_trick) == len(round.players):
             print("\nCompleted trick:")
-            for played_card in game.current_trick:
+            for played_card in round.current_trick:
                 print(f"{played_card.player.name}: {played_card.card}")
             print()
             try:
-                winner = game.evaluate_trick()
+                winner = round.evaluate_trick()
                 print(f"\n{winner.name} wins the trick!")
-                current_player_idx = game.players.index(winner)
+                current_player_idx = round.players.index(winner)
             except ValueError as e:
                 print(f"Error: {e}")
         else:
-            current_player_idx = (current_player_idx + 1) % len(game.players)
+            current_player_idx = (current_player_idx + 1) % len(round.players)
 
     # Game end
-    print("\nGame Over!")
-    for player in game.players:
+    print("\nRound Over!")
+    for player in round.players:
         print(f"{player.name}: {len(player.tricks_won)} tricks")
 
 

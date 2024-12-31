@@ -11,7 +11,7 @@ class PlayedCard:
     player: Player
 
 
-class TrickTakingGame:
+class GameRound:
     def __init__(self, player_names: List[str]):
         if len(player_names) < 2:
             raise ValueError("Need at least 2 players")
@@ -126,7 +126,7 @@ class TrickTakingGame:
         self.current_trick = []
         return winning_player
 
-    def is_game_over(self) -> bool:
+    def is_over(self) -> bool:
         """Check if the game is over."""
         # Don't end during incomplete trick
         if self.current_trick and len(self.current_trick) < len(self.players):

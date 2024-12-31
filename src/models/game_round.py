@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict
 from .player import Player
 from .deck import Deck
 from .card import Card, Suit
@@ -19,6 +19,25 @@ class GameRound:
         self.players = [Player(name) for name in player_names]
         self.current_trick: List[PlayedCard] = []
         self.trump_suit: Optional[Suit] = None
+        self.tricks_won: Dict[Player, List[List[Card]]] = {
+            player: [] for player in self.players
+        }
+        self.hands: Dict[Player, List[Card]] = {player: [] for player in self.players}
+
+    def get_hand(self, player: Player) -> List[Card]:
+        """Get a player's current hand."""
+        return self.hands[player]
+
+    def add_cards_to_hand(self, player: Player, cards: List[Card]):
+        """Add cards to a player's hand."""
+        self.hands[player].extend(cards)
+
+    def remove_card_from_hand(self, player: Player, card: Card) -> Card:
+        """Remove a card from a player's hand."""
+        if card not in self.hands[player]:
+            raise ValueError("Card not in hand")
+        self.hands[player].remove(card)
+        return card
 
     def setup_round(
         self, cards_per_player: int, trump: bool = True, deck: Optional[Deck] = None
@@ -26,6 +45,8 @@ class GameRound:
         """Setup a new round of the game."""
         self.current_trick = []
         self.trump_suit = None
+        self.tricks_won = {player: [] for player in self.players}
+        self.hands = {player: [] for player in self.players}
 
         # Initialize deck
         self.deck = deck if deck is not None else Deck.standard_deck()
@@ -42,7 +63,7 @@ class GameRound:
 
         # Deal specified number of cards to all players
         for player in self.players:
-            player.add_cards(self.deck.take_cards(cards_per_player))
+            self.add_cards_to_hand(player, self.deck.take_cards(cards_per_player))
 
         # Draw trump card if enabled
         if trump:
@@ -63,10 +84,11 @@ class GameRound:
 
         # Must follow suit if possible
         led_suit = self.current_trick[0].card.suit
-        has_led_suit = any(c.suit == led_suit for c in player.hand)
+        hand = self.hands[player]
+        has_led_suit = any(c.suit == led_suit for c in hand)
 
         if has_led_suit and card.suit != led_suit:
-            matching_cards = [c for c in player.hand if c.suit == led_suit]
+            matching_cards = [c for c in hand if c.suit == led_suit]
             return f"Must follow suit with one of: {', '.join(str(c) for c in matching_cards)}"
 
         return None
@@ -80,7 +102,7 @@ class GameRound:
         if result is not None:
             raise ValueError(result)
 
-        player.remove_card(card)
+        self.remove_card_from_hand(player, card)
         self.current_trick.append(PlayedCard(card, player))
 
     def evaluate_trick(self) -> Player:
@@ -122,7 +144,8 @@ class GameRound:
                 winner_index = i
 
         winning_player = self.current_trick[winner_index].player
-        winning_player.win_trick([played.card for played in self.current_trick])
+        trick_cards = [played.card for played in self.current_trick]
+        self.tricks_won[winning_player].append(trick_cards)
         self.current_trick = []
         return winning_player
 
@@ -133,4 +156,4 @@ class GameRound:
             return False
 
         # End when all players are out of cards
-        return all(len(player.hand) == 0 for player in self.players)
+        return all(len(self.hands[player]) == 0 for player in self.players)

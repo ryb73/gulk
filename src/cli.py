@@ -4,11 +4,12 @@ from .models.card import Card
 from .models.deck import Deck
 
 
-def print_hand(hand, round: GameRound, player: Player):
+def print_hand(round: GameRound, player: Player):
     """Print cards vertically, numbering only valid plays."""
     print("Your hand:")
     playable_indices = {}
     index = 0
+    hand = round.get_hand(player)
 
     for i, card in enumerate(hand):
         prefix = "  "
@@ -17,10 +18,10 @@ def print_hand(hand, round: GameRound, player: Player):
             playable_indices[index] = i
             index += 1
         print(f"{prefix} {card}")
-    return playable_indices
+    return playable_indices, hand
 
 
-def get_card_choice(hand, playable_indices):
+def get_card_choice(playable_indices, hand):
     """Get valid card selection from user."""
     while True:
         try:
@@ -95,11 +96,11 @@ def main():
                 print(f"{played_card.player.name}: {played_card.card}")
 
         while True:
-            playable_indices = print_hand(current_player.hand, round, current_player)
+            playable_indices, hand = print_hand(round, current_player)
             if not playable_indices:
                 print("No playable cards!")
                 break
-            card = get_card_choice(current_player.hand, playable_indices)
+            card = get_card_choice(playable_indices, hand)
             error = round.check_play_validity(current_player, card)
             if error is None:
                 round.play_card(current_player, card)
@@ -123,7 +124,7 @@ def main():
     # Game end
     print("\nRound Over!")
     for player in round.players:
-        print(f"{player.name}: {len(player.tricks_won)} tricks")
+        print(f"{player.name}: {len(round.tricks_won[player])} tricks")
 
 
 if __name__ == "__main__":

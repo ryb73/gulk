@@ -13,8 +13,8 @@ def test_round_creation():
 def test_round_setup():
     round = GameRound(["Player 1", "Player 2"])
     round.setup_round(5)  # Deal 5 cards to each player
-    assert len(round.players[0].hand) == 5
-    assert len(round.players[1].hand) == 5
+    assert len(round.hands[round.players[0]]) == 5
+    assert len(round.hands[round.players[1]]) == 5
     assert len(round.current_trick) == 0
 
 
@@ -33,7 +33,7 @@ def test_must_follow_suit():
     # Give player some cards
     hearts = Card(Suit.HEARTS, Rank.ACE)
     spades = Card(Suit.SPADES, Rank.ACE)
-    player.add_cards([hearts, spades])
+    round.add_cards_to_hand(player, [hearts, spades])
 
     # Lead a heart
     leading_card = Card(Suit.HEARTS, Rank.TWO)
@@ -71,15 +71,17 @@ def test_trick_evaluation():
     high_card = Card(Suit.HEARTS, Rank.ACE)
     low_card = Card(Suit.HEARTS, Rank.TWO)
 
-    player1.add_cards([high_card])
-    player2.add_cards([low_card])
+    round.add_cards_to_hand(player1, [high_card])
+    round.add_cards_to_hand(player2, [low_card])
 
     round.play_card(player1, high_card)
     round.play_card(player2, low_card)
 
     winner = round.evaluate_trick()
     assert winner == player1
-    assert len(player1.tricks_won) == 1
+    assert len(round.tricks_won[player1]) == 1
+    assert len(round.tricks_won[player2]) == 0
+    assert round.tricks_won[player1][0] == [high_card, low_card]
 
 
 def test_trump_disabled():
@@ -116,11 +118,13 @@ def test_trump_card_wins():
     player1, player2 = round.players
 
     assert round.trump_suit == Suit.HEARTS
-    assert spade_ace in player1.hand
-    assert heart_two in player2.hand
+    assert spade_ace in round.hands[player1]
+    assert heart_two in round.hands[player2]
 
     round.play_card(player1, spade_ace)
     round.play_card(player2, heart_two)
 
     winner = round.evaluate_trick()
     assert winner == player2  # Trump wins even against high card
+    assert len(round.tricks_won[player2]) == 1
+    assert round.tricks_won[player2][0] == [spade_ace, heart_two]

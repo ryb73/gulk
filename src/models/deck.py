@@ -28,5 +28,4 @@ class Deck:
         new_cards = self._cards[:-num_cards]
         dealt_cards = list(self._cards[-num_cards:])
         self._cards = new_cards
-        print(f"Dealt cards: {dealt_cards}")
         return dealt_cards

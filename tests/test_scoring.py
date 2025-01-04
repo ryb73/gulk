@@ -23,7 +23,7 @@ def simulate_tricks(round: GameRound, trick_winners: list[Player]) -> None:
 
 
 class TestBiddingScorer:
-    def test_correct_bids(self):
+    def test_correct_bid(self):
         round = create_test_round(["Alice", "Bob"])
         alice, bob = round.players
 
@@ -31,12 +31,12 @@ class TestBiddingScorer:
         simulate_tricks(round, [alice, alice, bob])
 
         # Test when both players meet their bids
-        scorer = BiddingScorer.create({alice: 2, bob: 1}, num_tricks=3)
+        scorer = BiddingScorer.create({alice: 2, bob: 0}, num_tricks=3)
         assert scorer is not None
 
         score = scorer.score_round(round)
-        assert score.points[alice] == 12  # 10 + bid of 2
-        assert score.points[bob] == 11  # 10 + bid of 1
+        assert score.points[alice] == 12
+        assert score.points[bob] == 0
 
     def test_incorrect_bids(self):
         round = create_test_round(["Alice", "Bob"])
@@ -58,7 +58,7 @@ class TestBiddingScorer:
 
         # Bids sum to number of tricks (invalid)
         scorer = BiddingScorer.create({alice: 2, bob: 1}, num_tricks=3)
-        assert scorer is not None
+        assert scorer is None
 
         # Bids sum to tricks (invalid)
         invalid_scorer = BiddingScorer.create({alice: 1, bob: 2}, num_tricks=3)

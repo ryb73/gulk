@@ -1,9 +1,9 @@
 from typing import Optional
-from .models.player import Player
-from .models.game_round import GameRound
-from .models.card import Card
-from .models.deck import Deck
-from .models.scoring import (
+from src.models.player import Player
+from src.models.game_round import GameRound
+from src.models.card import Card
+from src.models.deck import Deck
+from src.models.scoring import (
     RoundScorer,
     BiddingScorer,
     AllOrNothingScorer,

@@ -1,7 +1,15 @@
+from typing import Optional
 from .models.player import Player
 from .models.game_round import GameRound
 from .models.card import Card
 from .models.deck import Deck
+from .models.scoring import (
+    RoundScorer,
+    BiddingScorer,
+    AllOrNothingScorer,
+    FixedBidScorer,
+    RoundScore,
+)
 
 
 def print_hand(round: GameRound, player: Player):
@@ -31,6 +39,57 @@ def get_card_choice(playable_indices, hand):
             print("Invalid choice. Try again.")
         except ValueError:
             print("Please enter a number.")
+
+
+def get_scorer(round: GameRound) -> RoundScorer:
+    print("\nSelect scoring scheme:")
+    print("1. Bidding (10 points + bid if correct)")
+    print("2. All or Nothing (-2 per trick unless all taken)")
+    print("3. Fixed Bid (20 points for exactly 3 tricks)")
+
+    while True:
+        choice = input("Enter choice (1-3): ")
+        if choice == "1":
+            return get_bidding_scorer(round)
+        elif choice == "2":
+            return AllOrNothingScorer()
+        elif choice == "3":
+            return FixedBidScorer()
+        print("Invalid choice, try again")
+
+
+def get_bidding_scorer(round: GameRound) -> Optional[BiddingScorer]:
+    num_tricks = len(round.get_hand(round.players[0]))
+    bids = {}
+    total_bid = 0
+
+    print(f"\nEnter bids (0-{num_tricks})")
+    for i, player in enumerate(round.players):
+        while True:
+            try:
+                remaining = num_tricks - total_bid
+                if i == len(round.players) - 1:
+                    print(f"Cannot bid {remaining}")
+                bid = int(input(f"{player.name}'s bid: "))
+                if bid < 0 or bid > num_tricks:
+                    print(f"Bid must be between 0 and {num_tricks}")
+                    continue
+                if i == len(round.players) - 1 and bid == remaining:
+                    print("Last player cannot make bids sum to total tricks")
+                    continue
+                bids[player] = bid
+                total_bid += bid
+                break
+            except ValueError:
+                print("Please enter a number")
+
+    return BiddingScorer.create(bids, num_tricks)
+
+
+def display_scores(score: RoundScore) -> None:
+    print("\nFinal scores:")
+    for player, points in score.points.items():
+        print(f"{player.name}: {points}")
 
 
 def main():
@@ -76,6 +135,12 @@ def main():
             print("Please enter a valid number.")
 
     round.setup_round(cards_per_player, trump=use_trump)
+
+    # Move scorer selection here, after round setup
+    scorer = get_scorer(round)
+    if scorer is None:
+        print("Failed to create scorer")
+        return
 
     if round.trump_suit:
         print(f"\nTrump suit for this round: {Card._suit_symbols[round.trump_suit]}")
@@ -125,6 +190,9 @@ def main():
     print("\nRound Over!")
     for player in round.players:
         print(f"{player.name}: {len(round.tricks_won[player])} tricks")
+
+    score = scorer.score_round(round)
+    display_scores(score)
 
 
 if __name__ == "__main__":

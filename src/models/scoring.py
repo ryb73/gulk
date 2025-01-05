@@ -52,6 +52,9 @@ class AllOrNothingScorer(RoundScorer):
                 for other in round.players:
                     if other != player:
                         scores[other] = -10
+
+                # All players have now been scored
+                break
             else:
                 scores[player] = -2 * tricks_taken
         return RoundScore(scores)

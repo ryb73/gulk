@@ -66,7 +66,7 @@ class TestBiddingScorer:
 
 
 class TestAllOrNothingScorer:
-    def test_all_tricks_winner(self):
+    def test_all_tricks_winner_first(self):
         round = create_test_round(["Alice", "Bob"])
         alice, bob = round.players
 
@@ -78,6 +78,19 @@ class TestAllOrNothingScorer:
 
         assert score.points[alice] == 10  # Won all tricks
         assert score.points[bob] == -10  # Lost all tricks
+
+    def test_all_tricks_winner_second(self):
+        round = create_test_round(["Alice", "Bob"])
+        alice, bob = round.players
+
+        # Simulate Alice winning all tricks
+        simulate_tricks(round, [bob, bob, bob])
+
+        scorer = AllOrNothingScorer()
+        score = scorer.score_round(round)
+
+        assert score.points[alice] == -10
+        assert score.points[bob] == 10
 
     def test_split_tricks(self):
         round = create_test_round(["Alice", "Bob"])

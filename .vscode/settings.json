@@ -1,0 +1,9 @@
+{
+  // Testing just this file for now because otherwise the test discovery process hangs
+  "python.testing.pytestArgs": ["tests/test_scoring.py"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "[python]": {
+    "editor.formatOnSave": false
+  }
+}

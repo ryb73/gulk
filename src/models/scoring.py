@@ -18,17 +18,28 @@ class RoundScorer(ABC):
 
 
 class BiddingScorer(RoundScorer):
-    def __init__(self, bids: Dict[Player, int]):
-        self._bids = bids
+    def __init__(self):
+        self._bids = None
 
     @staticmethod
-    def create(bids: Dict[Player, int], num_tricks: int) -> Optional["BiddingScorer"]:
-        """Factory method that validates bids before creating scorer"""
+    def create() -> "BiddingScorer":
+        """Factory method that creates an empty scorer"""
+        return BiddingScorer()
+
+    def set_bids(self, bids: Dict[Player, int], num_tricks: int) -> bool:
+        """
+        Set the bids for this round.
+        Returns True if bids are valid, False otherwise.
+        """
         if sum(bids.values()) == num_tricks:  # Invalid if bids sum to tricks
-            return None
-        return BiddingScorer(bids)
+            return False
+        self._bids = bids
+        return True
 
     def score_round(self, round: GameRound) -> RoundScore:
+        if self._bids is None:
+            raise ValueError("Bids must be set before scoring")
+
         scores = {}
         for player in round.players:
             tricks_taken = len(round.tricks_won[player])

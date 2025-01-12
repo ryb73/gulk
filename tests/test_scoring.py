@@ -30,9 +30,8 @@ class TestBiddingScorer:
         # Simulate Alice winning 2 tricks, Bob winning 1
         simulate_tricks(round, [alice, alice, bob])
 
-        # Test when both players meet their bids
-        scorer = BiddingScorer.create({alice: 2, bob: 0}, num_tricks=3)
-        assert scorer is not None
+        scorer = BiddingScorer.create()
+        assert scorer.set_bids({alice: 2, bob: 0}, num_tricks=3)
 
         score = scorer.score_round(round)
         assert score.points[alice] == 12
@@ -45,8 +44,8 @@ class TestBiddingScorer:
         # Simulate Bob winning all tricks
         simulate_tricks(round, [bob, bob, bob])
 
-        scorer = BiddingScorer.create({alice: 2, bob: 0}, num_tricks=3)
-        assert scorer is not None
+        scorer = BiddingScorer.create()
+        assert scorer.set_bids({alice: 2, bob: 0}, num_tricks=3)
 
         score = scorer.score_round(round)
         assert score.points[alice] == 0  # Failed bid
@@ -56,13 +55,14 @@ class TestBiddingScorer:
         round = create_test_round(["Alice", "Bob"])
         alice, bob = round.players
 
+        scorer = BiddingScorer.create()
+
         # Bids sum to number of tricks (invalid)
-        scorer = BiddingScorer.create({alice: 2, bob: 1}, num_tricks=3)
-        assert scorer is None
+        assert not scorer.set_bids({alice: 2, bob: 1}, num_tricks=3)
 
         # Bids sum to tricks (invalid)
-        invalid_scorer = BiddingScorer.create({alice: 1, bob: 2}, num_tricks=3)
-        assert invalid_scorer is None
+        invalid_scorer = BiddingScorer.create()
+        assert not invalid_scorer.set_bids({alice: 1, bob: 2}, num_tricks=3)
 
 
 class TestAllOrNothingScorer:

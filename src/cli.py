@@ -10,6 +10,7 @@ from src.models.scoring import (
     FixedBidScorer,
     RoundScore,
 )
+from src.cli_helpers import play_round_loop, get_bids
 
 
 def print_hand(round: GameRound, player: Player):
@@ -59,31 +60,12 @@ def get_scorer(round: GameRound) -> RoundScorer:
 
 
 def get_bidding_scorer(round: GameRound) -> Optional[BiddingScorer]:
+    scorer = BiddingScorer.create()
     num_tricks = len(round.get_hand(round.players[0]))
-    bids = {}
-    total_bid = 0
-
-    print(f"\nEnter bids (0-{num_tricks})")
-    for i, player in enumerate(round.players):
-        while True:
-            try:
-                remaining = num_tricks - total_bid
-                if i == len(round.players) - 1:
-                    print(f"Cannot bid {remaining}")
-                bid = int(input(f"{player.name}'s bid: "))
-                if bid < 0 or bid > num_tricks:
-                    print(f"Bid must be between 0 and {num_tricks}")
-                    continue
-                if i == len(round.players) - 1 and bid == remaining:
-                    print("Last player cannot make bids sum to total tricks")
-                    continue
-                bids[player] = bid
-                total_bid += bid
-                break
-            except ValueError:
-                print("Please enter a number")
-
-    return BiddingScorer.create(bids, num_tricks)
+    bids = get_bids(round.players, num_tricks)
+    if not scorer.set_bids(bids, num_tricks):
+        return None
+    return scorer
 
 
 def display_scores(score: RoundScore) -> None:
@@ -142,49 +124,7 @@ def main():
         print("Failed to create scorer")
         return
 
-    if round.trump_suit:
-        print(f"\nTrump suit for this round: {Card._suit_symbols[round.trump_suit]}")
-
-    # Game loop
-    current_player_idx = 0
-    while not round.is_over():
-        print("\n" + "=" * 40)
-        current_player = round.players[current_player_idx]
-        print(f"\nCurrent player: {current_player.name}")
-
-        if round.trump_suit:
-            print(f"Trump suit: {Card._suit_symbols[round.trump_suit]}")
-
-        if round.current_trick:
-            print("\nCurrent trick:")
-            for played_card in round.current_trick:
-                print(f"{played_card.player.name}: {played_card.card}")
-
-        while True:
-            playable_indices, hand = print_hand(round, current_player)
-            if not playable_indices:
-                print("No playable cards!")
-                break
-            card = get_card_choice(playable_indices, hand)
-            error = round.check_play_validity(current_player, card)
-            if error is None:
-                round.play_card(current_player, card)
-                break
-            print(f"Invalid play: {error}")
-
-        if len(round.current_trick) == len(round.players):
-            print("\nCompleted trick:")
-            for played_card in round.current_trick:
-                print(f"{played_card.player.name}: {played_card.card}")
-            print()
-            try:
-                winner = round.evaluate_trick()
-                print(f"\n{winner.name} wins the trick!")
-                current_player_idx = round.players.index(winner)
-            except ValueError as e:
-                print(f"Error: {e}")
-        else:
-            current_player_idx = (current_player_idx + 1) % len(round.players)
+    play_round_loop(round)
 
     # Game end
     print("\nRound Over!")
